@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
   const isLoggedIn = request.cookies.get('authToken');
 
   // Define the protected routes
-  const protectedRoutes = ['/attendance', '/admin', '/qrcodescan'];
+  const protectedRoutes = ['/attendance', '/dashboard', '/qrcodescan'];
 
   // Check if the current path is one of the protected routes
   if (!isLoggedIn && protectedRoutes.some(route => url.pathname.startsWith(route))) {
@@ -19,5 +19,5 @@ export function middleware(request: NextRequest) {
 
 // Apply the middleware to the desired routes
 export const config = {
-  matcher: ['/attendance', '/admin', '/qrcodescan'], // Protect specific routes
+  matcher: ['/attendance', '/dashboard', '/qrcodescan'], // Protect specific routes
 };
