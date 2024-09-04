@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 04, 2024 at 03:55 PM
+-- Generation Time: Sep 04, 2024 at 09:19 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -29,15 +29,24 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `attendance` (
   `id` int(11) NOT NULL,
-  `student_id` int(11) NOT NULL,
+  `student_id` varchar(50) NOT NULL,
   `first_name` varchar(50) NOT NULL,
   `middle_name` varchar(50) DEFAULT NULL,
   `family_name` varchar(50) NOT NULL,
   `suffix` varchar(10) DEFAULT NULL,
-  `check_in` datetime NOT NULL,
-  `check_out` datetime DEFAULT NULL,
+  `year_level` varchar(20) NOT NULL,
+  `tribu` varchar(50) NOT NULL,
+  `check_in` time NOT NULL,
+  `check_out` time DEFAULT NULL,
   `status` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `attendance`
+--
+
+INSERT INTO `attendance` (`id`, `student_id`, `first_name`, `middle_name`, `family_name`, `suffix`, `year_level`, `tribu`, `check_in`, `check_out`, `status`) VALUES
+(14, '02-2223-03206', 'Van Morre', 'Acaylar', 'Guangco', '', '3rd Year', 'Mage', '20:17:04', '20:17:27', 'complete');
 
 -- --------------------------------------------------------
 
@@ -124,8 +133,7 @@ INSERT INTO `year_levels` (`id`, `level_name`) VALUES
 -- Indexes for table `attendance`
 --
 ALTER TABLE `attendance`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `student_id` (`student_id`);
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `students`
@@ -157,7 +165,7 @@ ALTER TABLE `year_levels`
 -- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `students`
@@ -174,12 +182,6 @@ ALTER TABLE `tribus`
 --
 -- Constraints for dumped tables
 --
-
---
--- Constraints for table `attendance`
---
-ALTER TABLE `attendance`
-  ADD CONSTRAINT `attendance_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`);
 
 --
 -- Constraints for table `students`
