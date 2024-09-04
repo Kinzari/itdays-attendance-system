@@ -31,7 +31,7 @@ export default function LoginForm() {
         if (userData.roles === 'admin') {
           toast.success("Successfully Logged In as ADMIN.");
           setTimeout(() => {
-            window.location.href = '/admin';
+            window.location.href = '/dashboard';
           }, 2000);
         } 
         else if (userData.roles === 'sbo') {
