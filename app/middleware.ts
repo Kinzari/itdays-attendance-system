@@ -2,19 +2,17 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  const url = request.nextUrl.clone();
-  const isLoggedIn = request.cookies.get('authToken');
+  const authToken = request.cookies.get('authToken'); // Check for the auth token in the cookies
 
   // Define the protected routes
   const protectedRoutes = ['/attendance', '/dashboard', '/qrcodescan'];
 
-  // Check if the current path is one of the protected routes
-  if (!isLoggedIn && protectedRoutes.some(route => url.pathname.startsWith(route))) {
-    url.pathname = '/login'; // Redirect to login if not logged in
-    return NextResponse.redirect(url);
+  // If the user is not logged in and trying to access a protected route, redirect to login
+  if (!authToken && protectedRoutes.some(route => request.nextUrl.pathname.startsWith(route))) {
+    return NextResponse.redirect(new URL('/login', request.url)); // Redirect to login
   }
 
-  return NextResponse.next();
+  return NextResponse.next(); // Allow the request to proceed if authenticated
 }
 
 // Apply the middleware to the desired routes
