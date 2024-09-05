@@ -25,7 +25,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="light">
           {children}
         </ThemeProvider>
-        <Toaster duration={2500}
+        <Toaster duration={2000}
         toastOptions={{
           classNames: {
             error: 'bg-red-500',
