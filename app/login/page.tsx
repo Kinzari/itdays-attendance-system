@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -33,7 +34,7 @@ export default function LoginForm() {
           setTimeout(() => {
             window.location.href = '/dashboard';
           }, 2000);
-        } 
+        }
         else if (userData.roles === 'sbo') {
           toast.success("Successfully Logged In as SBO.");
           setTimeout(() => {
@@ -61,7 +62,13 @@ export default function LoginForm() {
       <Card className="w-full max-w-sm">
         <CardHeader>
           <div className="flex items-center">
-            <img src="/assets/cocicon.png" alt="Sign Up Icon" className="h-12 w-12 mr-3" />
+            <Image
+              src="/assets/cocicon.png"
+              alt="Sign Up Icon"
+              width={48}
+              height={48}
+              className="mr-3"
+            />
             <CardTitle className="text-3xl font-black">IT DAYS - Login</CardTitle>
           </div>
           <CardDescription>

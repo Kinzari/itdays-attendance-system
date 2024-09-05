@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import axios from "axios";
@@ -60,7 +61,7 @@ export default function SignupForm() {
     phinmaed_email: '',  // Added PHINMAED email field
     year_level: '',
     tribu_id: '',
-    roles: 'student' 
+    roles: 'student'
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -130,7 +131,13 @@ export default function SignupForm() {
       <Card className="w-full max-w-2xl">
         <CardHeader>
           <div className="flex items-center">
-            <img src="/assets/cocicon.png" alt="Sign Up Icon" className="h-12 w-12 mr-3" />
+            <Image
+              src="/assets/cocicon.png"
+              alt="Sign Up Icon"
+              width={48}
+              height={48}
+              className="mr-3"
+            />
             <CardTitle className="text-3xl font-black">Sign Up</CardTitle>
           </div>
           <CardDescription>Fill Up the following information</CardDescription>

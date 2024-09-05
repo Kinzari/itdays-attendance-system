@@ -8,6 +8,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
+date_default_timezone_set('Asia/Manila');
+
 $servername = "localhost";
 $username = "root";
 $password = "";
@@ -19,23 +21,26 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Get the input JSON data
+// Get the current day from the event_status table
+$current_day_result = $conn->query("SELECT current_day FROM event_status WHERE id = 1");
+$current_day_row = $current_day_result->fetch_assoc();
+$current_day = $current_day_row['current_day'];
+
 $data = json_decode(file_get_contents("php://input"), true);
 
-// Validate the input data
-if (isset($data['student_id']) && isset($data['check_in'])) {
+if (isset($data['student_id']) && isset($data['scan_mode'])) {
     $student_id = $data['student_id'];
-    $check_in = date('H:i:s'); // Store only the time in the check_in
-    $check_out = isset($data['check_out']) ? date('H:i:s') : null;
+    $scan_mode = $data['scan_mode'];
+    $check_time = date('H:i:s');
 
     // Check if the student has already checked in today
-    $query = "SELECT * FROM attendance WHERE student_id = '$student_id' AND DATE(check_in) = CURDATE()";
+    $query = "SELECT * FROM attendance WHERE student_id = '$student_id' AND day = '$current_day'";
     $result = mysqli_query($conn, $query);
     $attendance = mysqli_fetch_assoc($result);
 
-    if (!$attendance) {
-        // First scan, insert a new record with check_in
-        $query = "INSERT INTO attendance (student_id, first_name, middle_name, family_name, suffix, year_level, tribu, check_in, status) 
+    if (!$attendance && $scan_mode === 'check_in') {
+        // First scan, insert check_in with the new day
+        $query = "INSERT INTO attendance (student_id, first_name, middle_name, family_name, suffix, year_level, tribu, check_in, status, day) 
                   VALUES (
                     '{$data['student_id']}', 
                     '{$data['first_name']}', 
@@ -44,26 +49,22 @@ if (isset($data['student_id']) && isset($data['check_in'])) {
                     '{$data['suffix']}', 
                     '{$data['year_level']}', 
                     '{$data['tribu']}', 
-                    '$check_in', 
-                    'incomplete')";
+                    '$check_time', 
+                    'Incomplete', 
+                    '$current_day')";
+    } elseif ($attendance && $scan_mode === 'check_out' && !$attendance['check_out']) {
+        // Second scan, update with check_out
+        $query = "UPDATE attendance 
+                  SET check_out = '$check_time', status = 'Complete' 
+                  WHERE student_id = '$student_id' AND day = '$current_day'";
     } else {
-        // Check if check_out is already set
-        if ($attendance['check_out'] === NULL) {
-            // Second scan, update the record with check_out time
-            $check_out = date('H:i:s');
-            $query = "UPDATE attendance 
-                      SET check_out = '$check_out', status = 'complete' 
-                      WHERE student_id = '$student_id' AND DATE(check_in) = CURDATE()";
-        } else {
-            // Third scan or further, reject
-            echo json_encode(["message" => "Scan reached its limit"]);
-            exit;
-        }
+        // Limit reached or invalid scan mode
+        echo json_encode(["message" => "Scan reached its limit or invalid mode"]);
+        exit;
     }
 
-    // Execute the query and handle the result
     if (mysqli_query($conn, $query)) {
-        echo json_encode(["message" => "Attendance recorded successfully"]);
+        echo json_encode(["message" => "Attendance recorded successfully", "check_time" => $check_time]);
     } else {
         echo json_encode(["message" => "Failed to record attendance", "error" => mysqli_error($conn)]);
     }
@@ -71,6 +72,5 @@ if (isset($data['student_id']) && isset($data['check_in'])) {
     echo json_encode(["message" => "Invalid data"]);
 }
 
-// Close the connection
 mysqli_close($conn);
 ?>
