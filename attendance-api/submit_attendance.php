@@ -31,7 +31,11 @@ $data = json_decode(file_get_contents("php://input"), true);
 if (isset($data['student_id']) && isset($data['scan_mode'])) {
     $student_id = $data['student_id'];
     $scan_mode = $data['scan_mode'];
-    $check_time = date('H:i:s');
+    $check_time = date('H:i:s');  // Only time format
+
+    // Check if middle_name and suffix exist, else set to empty string
+    $middle_name = isset($data['middle_name']) ? $data['middle_name'] : '';
+    $suffix = isset($data['suffix']) ? $data['suffix'] : '';
 
     // Check if the student has already checked in today
     $query = "SELECT * FROM attendance WHERE student_id = '$student_id' AND day = '$current_day'";
@@ -44,32 +48,58 @@ if (isset($data['student_id']) && isset($data['scan_mode'])) {
                   VALUES (
                     '{$data['student_id']}', 
                     '{$data['first_name']}', 
-                    '{$data['middle_name']}', 
+                    '$middle_name', 
                     '{$data['family_name']}', 
-                    '{$data['suffix']}', 
+                    '$suffix', 
                     '{$data['year_level']}', 
                     '{$data['tribu']}', 
                     '$check_time', 
                     'Incomplete', 
                     '$current_day')";
+
+        if (mysqli_query($conn, $query)) {
+            echo json_encode([
+                "success" => true,
+                "message" => "Attendance recorded successfully",
+                "check_time" => $check_time  // Return check_in time
+            ]);
+        } else {
+            echo json_encode([
+                "success" => false,
+                "message" => "Failed to record attendance",
+                "error" => mysqli_error($conn)
+            ]);
+        }
     } elseif ($attendance && $scan_mode === 'check_out' && !$attendance['check_out']) {
         // Second scan, update with check_out
         $query = "UPDATE attendance 
                   SET check_out = '$check_time', status = 'Complete' 
                   WHERE student_id = '$student_id' AND day = '$current_day'";
-    } else {
-        // Limit reached or invalid scan mode
-        echo json_encode(["message" => "Scan reached its limit or invalid mode"]);
-        exit;
-    }
 
-    if (mysqli_query($conn, $query)) {
-        echo json_encode(["message" => "Attendance recorded successfully", "check_time" => $check_time]);
+        if (mysqli_query($conn, $query)) {
+            echo json_encode([
+                "success" => true,
+                "message" => "Attendance recorded successfully",
+                "check_time" => $check_time  // Return check_out time
+            ]);
+        } else {
+            echo json_encode([
+                "success" => false,
+                "message" => "Failed to record attendance",
+                "error" => mysqli_error($conn)
+            ]);
+        }
     } else {
-        echo json_encode(["message" => "Failed to record attendance", "error" => mysqli_error($conn)]);
+        echo json_encode([
+            "success" => false,
+            "message" => "Scan reached its limit or invalid mode"
+        ]);
     }
 } else {
-    echo json_encode(["message" => "Invalid data"]);
+    echo json_encode([
+        "success" => false,
+        "message" => "Invalid data"
+    ]);
 }
 
 mysqli_close($conn);
