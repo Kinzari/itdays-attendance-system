@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import axios from "axios";
+import Link from "next/link";
 import {
   Home,
   LineChart,
@@ -15,7 +16,8 @@ import {
   ArrowDownAZ,
   ArrowUpZA,
   ArrowDown01,
-  ArrowUp10
+  ArrowUp10,
+  Archive
 } from "lucide-react";
 import ThemeToggle from '@/components/ThemeToggle';
 import { Button } from "@/components/ui/button";
@@ -76,7 +78,7 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedYearLevel, setSelectedYearLevel] = useState('Display All');
   const [selectedTribu, setSelectedTribu] = useState('Display All');
-  const [currentDay, setCurrentDay] = useState('Day 1'); // Default to 'Day 1'
+  const [currentDay, setCurrentDay] = useState('Day 1');
   const [loading, setLoading] = useState(true);
 
   // Sorting states
@@ -95,23 +97,22 @@ export default function Dashboard() {
   });
 
   // Fetch the current day from the backend when the component mounts
-useEffect(() => {
-  const fetchCurrentDay = async () => {
-    try {
-      const response = await axios.get('http://localhost/attendance-api/get_current_day.php');
-      if (response.data.success) {
-        setCurrentDay(response.data.current_day);
-      } else {
-        console.error('Failed to fetch current day:', response.data.message);
+  useEffect(() => {
+    const fetchCurrentDay = async () => {
+      try {
+        const response = await axios.get('http://localhost/attendance-api/get_current_day.php');
+        if (response.data.success) {
+          setCurrentDay(`Day ${response.data.current_day}`);
+        } else {
+          console.error('Failed to fetch current day:', response.data.message);
+        }
+      } catch (error) {
+        console.error('Error fetching current day:', error);
       }
-    } catch (error) {
-      console.error('Error fetching current day:', error);
-    }
-  };
+    };
 
-  fetchCurrentDay();
-}, []);
-
+    fetchCurrentDay();
+  }, []);
 
   // Fetch attendance data, year levels, and tribus
   useEffect(() => {
@@ -221,23 +222,21 @@ useEffect(() => {
     });
   };
 
-  // End the current day and move to the next day
+  /// End the current day and move to the next day
   const endDayEvent = async () => {
-    if (currentDay !== null) {
-      try {
-        const newDay = currentDay + 1;  // Increment the day
-        const response = await axios.post('http://localhost/attendance-api/update_day.php', { new_day: newDay });
-        if (response.data.success) {
-          setCurrentDay(newDay); // Update the state with the new day
-          alert(`Day ${newDay} has started.`);
-        } else {
-          console.error('Error ending the day:', response.data.message);
-          alert('Failed to end the day: ' + response.data.message);
-        }
-      } catch (error) {
-        console.error('Error ending the day:', error);
-        alert('An error occurred while ending the day. Please try again.');
+    try {
+      const response = await axios.post('http://localhost/attendance-api/archive_attendance.php', { day: currentDay });
+      if (response.data.success) {
+        const newDay = Number(currentDay.split(' ')[1]) + 1;
+        setCurrentDay(`Day ${newDay}`); // Increment the current day and update the state
+        alert(`Day ${newDay} has started.`);
+      } else {
+        console.error('Error ending the day:', response.data.message);
+        alert('Failed to end the day: ' + response.data.message);
       }
+    } catch (error) {
+      console.error('Error ending the day:', error);
+      alert('An error occurred while ending the day. Please try again.');
     }
   };
 
@@ -252,13 +251,34 @@ useEffect(() => {
         {/* Sidebar */}
         <aside className="fixed inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-background sm:flex">
           <nav className="flex flex-col items-center gap-4 px-2 sm:py-5">
+            <img
+              src="/assets/cocicon.png"
+              alt="Logo"
+              className="h-10 w-10 mb-1"
+            />
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button size="icon" variant="outline">
-                  <PanelLeft className="h-5 w-5" />
-                </Button>
+                <Link
+                  href="/dashboard"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-accent-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
+                >
+                  <Home className="h-5 w-5" />
+                  <span className="sr-only">IT Days - Dashboard</span>
+                </Link>
               </TooltipTrigger>
-              <TooltipContent side="right">Menu</TooltipContent>
+              <TooltipContent side="right">IT Days - Dashboard</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  href="/attendance-report"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-accent-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
+                >
+                  <Archive className="h-5 w-5" />
+                  <span className="sr-only">IT Days - Reports</span>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="right">IT Days - Reports</TooltipContent>
             </Tooltip>
           </nav>
         </aside>
@@ -273,7 +293,20 @@ useEffect(() => {
               </SheetTrigger>
               <SheetContent side="left" className="sm:max-w-xs">
                 <nav className="grid gap-6 text-lg font-medium">
-                  {/* Add more navigation links here */}
+                  <Link
+                    href="/dashboard"
+                    className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base"
+                  >
+                    <Home className="h-5 w-5 transition-all group-hover:scale-110" />
+                    <span className="sr-only">IT Days - Dashboard</span>
+                  </Link>
+                  <Link
+                    href="/attendance-report"
+                    className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base"
+                  >
+                    <Archive className="h-5 w-5 transition-all group-hover:scale-110" />
+                    <span className="sr-only">IT Days - Reports</span>
+                  </Link>
                 </nav>
               </SheetContent>
             </Sheet>
@@ -408,13 +441,33 @@ useEffect(() => {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
+              <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button className="bg-black text-white" variant="outline">
+                        End Day Event
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        Confirm End Event?
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction asChild>
+                          <Button className="bg-black text-white" onClick={endDayEvent}>
+                            Confirm
+                          </Button>
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
             </div>
           </header>
 
           <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
             <Card>
               <CardHeader>
-                <CardTitle className="font-black">Dashboard Day - {currentDay}</CardTitle>
+                <CardTitle className="font-black">Dashboard - {currentDay}</CardTitle>
                 <CardDescription>
                   Below is the list of students scanned via QR Code.
                 </CardDescription>
@@ -459,7 +512,7 @@ useEffect(() => {
                       filteredData.map((entry, index) => (
                         <TableRow key={index}>
                           {visibleColumns.student_name && (
-                            <TableCell>{`${entry.family_name}, ${entry.first_name.charAt(0)}.`}</TableCell>
+                            <TableCell>{`${entry.family_name}, ${entry.first_name}`}</TableCell>
                           )}
                           {visibleColumns.student_id && <TableCell>{entry.student_id}</TableCell>}
                           {visibleColumns.year_level && <TableCell>{entry.year_level}</TableCell>}
@@ -478,28 +531,6 @@ useEffect(() => {
                     )}
                   </TableBody>
                 </Table>
-                <div className="text-center mt-6">
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button className="bg-black text-white" variant="outline">
-                        End Day Event
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        Confirm End Event?
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction asChild>
-                          <Button className="bg-black text-white" onClick={endDayEvent}>
-                            Confirm
-                          </Button>
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
               </CardContent>
             </Card>
           </main>
