@@ -112,7 +112,6 @@ export default function QRCodeScan() {
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-background text-foreground p-4">
       <ThemeToggle />
-
       <div className="absolute bottom-5 left-5">
         <AlertDialog>
           <AlertDialogTrigger asChild>
